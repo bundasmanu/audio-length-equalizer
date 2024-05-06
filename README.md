@@ -24,7 +24,7 @@ It's a very simple script that has very specific objectives, including:
 The process of normalizing the size of the final audios is simplistic, based on the following premises:
 
 - If `audio_duration < wanted_audio_length` then:
-  - Added silence, until `audio_duration=wanted_audio_length`
+  - Added Confort Noise silence, until `audio_duration=wanted_audio_length`
 - Otherwise:
   - Excess part of the audio is deleted, so that `audio_duration=wanted_audio_length`
 
