@@ -1,7 +1,8 @@
 import os
-from pydub import AudioSegment
-import random
 import argparse
+from pydub import AudioSegment
+from pydub.generators import WhiteNoise
+import random
 
 # Setup argument parser
 parser = argparse.ArgumentParser(description="Extract and normalize audio files.")
@@ -27,17 +28,25 @@ output_extension = args.output_extension
 # Create destination directory if it doesn't exist
 os.makedirs(destination_folder, exist_ok=True)
 
-# Function to normalize audio length and maintain original properties
+def add_comfort_noise(audio_segment, duration_ms, volume=-20.0):
+    """
+    Adds comfort noise to an audio segment for a given duration and volume.
+    """
+    # Generate white noise
+    noise = WhiteNoise().to_audio_segment(duration=duration_ms, volume=volume)
+    return audio_segment.overlay(noise, position=0)
+
 def normalize_audio(audio_path, output_path, target_length=30000):
     audio = AudioSegment.from_file(audio_path)
     original_bitrate = audio.frame_rate * audio.frame_width * 8 * audio.channels // 1000  # Simplistic bitrate calculation in kbps
 
     duration = len(audio)
     if duration < target_length:
-        # If less than target length, pad with silence until target length
+        # Calculate the required duration of comfort noise
         silence_duration = target_length - duration
-        silence = AudioSegment.silent(duration=silence_duration, frame_rate=audio.frame_rate)
-        audio += silence
+        # Generate and add comfort noise
+        noise = add_comfort_noise(AudioSegment.silent(duration=silence_duration), silence_duration, volume=-20)
+        audio += noise
     elif duration > target_length:
         # Cut down to target length if longer
         audio = audio[:target_length]
